@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { jsonrepair } from "jsonrepair";
 import "./index.css";
 
@@ -6,14 +8,18 @@ const App: React.FC = () => {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
   const [lineCol, setLineCol] = useState<{ line: number; column: number } | null>(null);
+  const [formatted, setFormatted] = useState<string>("");
 
   const formatJSON = () => {
     try {
       const parsed = JSON.parse(input);
-      setInput(JSON.stringify(parsed, null, 2));
+      const pretty = JSON.stringify(parsed, null, 2);
+      setInput(pretty);
+      setFormatted(pretty);
       setError("");
       setLineCol(null);
     } catch (err: any) {
+      setFormatted("");
       pinpointError(err);
     }
   };
@@ -39,16 +45,20 @@ const App: React.FC = () => {
     setInput("");
     setError("");
     setLineCol(null);
+    setFormatted("");
   };
 
   const fixJSON = () => {
     try {
       const repaired = jsonrepair(input);
-      setInput(JSON.stringify(JSON.parse(repaired), null, 2));
+      const pretty = JSON.stringify(JSON.parse(repaired), null, 2);
+      setInput(pretty);
+      setFormatted(pretty);
       setError("");
       setLineCol(null);
     } catch (err: any) {
       setError("Unable to auto-fix this JSON.");
+      setFormatted("");
     }
   };
 
@@ -83,6 +93,14 @@ const App: React.FC = () => {
           </button>
         )}
       </div>
+      {formatted && !error && (
+        <div className="json-output">
+          <h2>Formatted JSON</h2>
+          <SyntaxHighlighter language="json" style={vscDarkPlus} customStyle={{ borderRadius: 8, fontSize: 16 }}>
+            {formatted}
+          </SyntaxHighlighter>
+        </div>
+      )}
     </div>
   );
 };
